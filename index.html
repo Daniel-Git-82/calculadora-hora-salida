@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de hora de salida</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
+  <style>
+    body {
+      margin: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+      font-family: 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px;
+    }
+    .ventana-flotante.titulo {
+      background-color: #fff;
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    h1 {
+      font-size: 1.5em;
+      margin: 0;
+      color: #333;
+      text-align: center;
+    }
+    .ventana-flotante {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    label {
+      font-size: 1em;
+      margin-top: 10px;
+      color: #555;
+      width: 100%;
+    }
+    input[type="time"] {
+      width: 100%;
+      max-width: 300px;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      max-width: 300px;
+      margin-top: 20px;
+      padding: 12px;
+      font-size: 1em;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #resultado {
+      display: none;
+      padding: 12px;
+      font-size: 1em;
+      font-weight: 500;
+      color: #000000;
+      background-color: #f0f0f0;
+      border-radius: 6px;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div class="ventana-flotante titulo">
+    <h1>Calcular Hora de Salida</h1>
+  </div>
+  <div class="ventana-flotante">
+    <label for="entrada">Hora de entrada:</label>
+    <input type="time" id="entrada" value="08:00">
+    <label for="salidaComida">Hora de salida a comer:</label>
+    <input type="time" id="salidaComida">
+    <label for="regresoComida">Hora de regreso de comer:</label>
+    <input type="time" id="regresoComida">
+    <button onclick="calcularSalida()">Calcular hora de salida</button>
+  </div>
+  <div class="ventana-flotante" id="resultado"></div>
+  <script>
+    function calcularSalida() {
+      const entrada = document.getElementById('entrada').value;
+      const salidaComida = document.getElementById('salidaComida').value;
+      const regresoComida = document.getElementById('regresoComida').value;
+      const resultado = document.getElementById('resultado');
+
+      if (!entrada || !salidaComida || !regresoComida) {
+        resultado.textContent = '';
+        resultado.style.display = 'none';
+        return;
+      }
+
+      resultado.style.display = 'block';
+
+      let [hEntrada, mEntrada] = entrada.split(':').map(Number);
+      if (hEntrada < 8) {
+        hEntrada = 8;
+        mEntrada = 0;
+      }
+
+      const [hSalidaComida, mSalidaComida] = salidaComida.split(':').map(Number);
+      const [hRegresoComida, mRegresoComida] = regresoComida.split(':').map(Number);
+
+      const entradaMin = hEntrada * 60 + mEntrada;
+      const salidaComidaMin = hSalidaComida * 60 + mSalidaComida;
+      const regresoComidaMin = hRegresoComida * 60 + mRegresoComida;
+
+      const tiempoAntesComida = salidaComidaMin - entradaMin;
+      const tiempoDespuesComida = 9 * 60 - tiempoAntesComida;
+
+      const salidaFinalMin = regresoComidaMin + tiempoDespuesComida;
+      const hSalidaFinal = Math.floor(salidaFinalMin / 60);
+      const mSalidaFinal = salidaFinalMin % 60;
+
+      const horaSalida = `${String(hSalidaFinal).padStart(2, '0')}:${String(mSalidaFinal).padStart(2, '0')}`;
+      resultado.textContent = `Debes salir como mínimo a las ${horaSalida}`;
+    }
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado', reg))
+        .catch(err => console.error('Error al registrar el Service Worker', err));
+    }
+  </script>
+</body>
+</html>
